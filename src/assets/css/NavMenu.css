@@ -1,0 +1,218 @@
+/* === NAVIGATION PRINCIPALE === */
+.navbar {
+    background-color: #005B85;
+    padding: 0.5rem 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 50;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 1rem;
+  }
+  
+  .navbar-brand {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .navbar-page-title {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 400;
+    margin-left: 1rem;
+    flex-grow: 1;
+  }
+
+/*
+  .navbar-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+  
+  .navbar-page-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 500;
+  }*/
+  
+  
+  
+  .navbar-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .menu-button {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+  
+  /* === INITIALS UTILISATEUR === */
+  .user-initials {
+    width: 28px;
+    height: 28px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 0.75rem;
+    margin-left: 1rem;
+    cursor: pointer;
+  }
+  
+  /* === MENU EN GRILLE === */
+  .grid-menu {
+    position: absolute;
+    top: 47px;
+    right: 0;
+    width: 360px; /* au lieu de 480px si tu veux un menu plus étroit */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  
+  .grid-menu.show {
+    display: block;
+  }
+  
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.6rem; /* réduit l'espacement entre les items (au lieu de 1.2rem) */
+    justify-items: center;
+  }
+  
+  .grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #1f2937;
+    transition: transform 0.2s ease;
+    width: 80px;
+    text-align: center;
+  }
+  
+  .grid-item:hover {
+    transform: translateY(-3px);
+  }
+  
+  .grid-item:hover {
+    background-color: #e0f3fa;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    
+  .grid-icon {
+    background-color: #f3f4f6;
+    border-radius: 12px;
+    width: 48px; /* réduit de 64px */
+    height: 48px;
+    font-size: 1.2rem; /* réduit de 1.6rem */
+    margin-bottom: 0.3rem; /* un peu moins de marge en dessous */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  }
+  
+  .grid-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .search-container-menu {
+    padding: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .search-input-menu {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  
+  /* === MENU UTILISATEUR === */
+  .user-menu {
+    position: absolute;
+    top: 50px;
+    right: 15px;
+    width: 200px;
+    background: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+  }
+  
+  .user-menu.show {
+    display: flex;
+  }
+  
+  .user-menu-item {
+    text-decoration: none;
+    color: #333;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+    transition: background 0.3s ease;
+  }
+  
+  .user-menu-item:last-child {
+    border-bottom: none;
+  }
+  
+  .user-menu-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .user-menu-item.logout {
+    color: #c0392b;
+  }
+  
+  .icon-blue {
+    color: #005B85;
+  }
+
+  .navbar-inner {
+    display: flex;
+    justify-content: space-between;  /* Ceci pousse les éléments aux extrémités */
+    align-items: center;
+    padding: 0 1rem;
+    max-width: 100%;
+  }
+  
+  

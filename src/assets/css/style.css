@@ -1,0 +1,395 @@
+/* Container principal */
+.page-container {
+  background-color: #fff;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  padding-top: 1rem; /* correspond à la hauteur de la navbar + espace souhaité */
+}
+
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  color: #172554;
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+/* Grille de cartes */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #172554;
+  margin-bottom: 0.5rem;
+}
+
+.card-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.card-value.primary {
+  color: #005B85;
+}
+
+.card-value.danger {
+  color: #dc2626;
+}
+
+.card-value.warning {
+  color: #f97316;
+}
+
+.card-desc {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Activités récentes */
+.recent-activity {
+  margin-top: 3rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #172554;
+  margin-bottom: 1rem;
+}
+
+.activity-box {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.activity-item {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.activity-item:hover {
+  background-color: #e3e5e8;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-title {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.activity-meta {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* Pour les badges de statut */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Actions boutons dans tableau */
+.table-actions button {
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.table-actions button i {
+  pointer-events: none;
+}
+
+.badge-success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-danger {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+/* FicheVente.css */
+
+
+.fiche-vente {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.panel-gauche, .panel-droit {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.panel-gauche {
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.panel-gauche input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.valider {
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.panel-droit {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: calc(100vh - 150px);
+}
+
+.panier {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Custom scrollbar styling */
+.panier::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panier::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.panier::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.panier::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.ajout-produit select, .ajout-produit button {
+  padding: 10px;
+  margin-right: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.product-inputs {
+  margin-top: 1rem;
+}
+
+.input-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.input-group .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.input-label {
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.produit-info {
+  flex: 1;
+}
+
+.produit-description {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.btn-add {
+  background-color: #005B85;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.btn-add:hover {
+  background-color: #004b6e;
+}
+
+.btn-add:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-add .fa-shopping-cart {
+  font-size: 1.25rem;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: #ef4444;
+  transition: color 0.2s ease;
+}
+
+.btn-delete:hover {
+  color: #dc2626;
+}
+
+.btn-delete .fa-trash {
+  font-size: 1rem;
+}
+
+.card-produit {
+  background-color: #f1f5f9;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.card-produit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background-color: #f8fafc;
+}
+
+.produit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.btn-icon:hover {
+  color: #ef4444;
+}
+
+.btn-icon .fa-trash {
+  font-size: 1rem;
+}
+
+.produit-details {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-input {
+  width: 80px;
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.inline-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.input-group .form-control {
+  height: 40px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.input-group .form-control:focus {
+  border-color: #005B85;
+  box-shadow: 0 0 0 2px rgba(0, 91, 133, 0.1);
+  outline: none;
+}
