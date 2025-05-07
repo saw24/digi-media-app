@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { FaEye, FaTrash, FaPrint, FaMoneyBillAlt  } from 'react-icons/fa';
+import { FaEye, FaTrash, FaPrint, FaMoneyBillAlt, FaEdit } from 'react-icons/fa';
 import Fuse from 'fuse.js';
 import { toast } from 'react-toastify';
 import API from '../services/api';
@@ -464,189 +464,405 @@ export default function Factures() {
         setSelectedFacture(facture);
         setShowPaymentModal(true);
         console.log('Payment for facture:', facture.Num_Fact);
+        console.log('Reste_A_Payer :', facture.Reste_A_Payer);
+        console.log('Reste_A_Payer :', (facture.MTTC_Fact - (facture.Montant_Paye || 0)));
     };
 
     // Add these state declarations with your other useState declarations
-const [showPaymentModal, setShowPaymentModal] = useState(false);
-//const [selectedFacture, setSelectedFacture] = useState(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    //const [selectedFacture, setSelectedFacture] = useState(null);
 
-// Add the PaymentModal component before the return statement
-const PaymentModal = () => {
-    const [formData, setFormData] = useState({
-        Date_Tran: new Date().toISOString().split('T')[0],
-        Heure_Tran: new Date().toLocaleTimeString(),
-        Montant_Tran: selectedFacture?.Reste_A_Payer || 0,
-        ModePaie_Tran: '',
-        Num_Fact: selectedFacture?.Num_Fact || '',
-        code_paiement: '',
-        etat_paiement: false
-    });
+    // Add the PaymentModal component before the return statement
+    const PaymentModal = () => {
+        const [formData, setFormData] = useState({
+            Date_Tran: new Date().toISOString().split('T')[0],
+            Heure_Tran: new Date().toLocaleTimeString(),
+            Montant_Tran: selectedFacture?.Reste_A_Payer || 0,
+            ModePaie_Tran: '',
+            Num_Fact: selectedFacture?.Num_Fact || '',
+            code_paiement: `PAIE-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+            etat_paiement: false
+        });
+        const [payments, setPayments] = useState([]);
+        const [editingPayment, setEditingPayment] = useState(null);
+        const [loadingPayments, setLoadingPayments] = useState(false);
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
-    };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const token = localStorage.getItem('token');
-            await API.post('/tranche', formData, {
-                headers: { Authorization: `Bearer ${token}` }
+        useEffect(() => {
+            if (selectedFacture?.Num_Fact) {
+                fetchPayments();
+            }
+        }, [selectedFacture]);
+
+        const fetchPayments = async () => {
+            setLoadingPayments(true);
+            try {
+                const token = localStorage.getItem('token');
+                const response = await API.get(`/tranche/facture/${encodeURIComponent(selectedFacture.Num_Fact)}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                // Ensure response.data is an array
+                setPayments(Array.isArray(response.data) ? response.data : []);
+            } catch (error) {
+                setPayments([]);
+                console.error('Error fetching payments:', error);
+                toast.error('Erreur lors de la récupération des paiements');
+            } finally {
+                setLoadingPayments(false);
+            }
+        };
+
+        const handleChange = (e) => {
+            const { name, value, type, checked } = e.target;
+            if (name === 'Montant_Tran') {
+                // Remove any non-numeric characters except decimal point
+                const cleanValue = value.replace(/[^\d.]/g, '');
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: cleanValue
+                }));
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: type === 'checkbox' ? checked : value
+                }));
+            }
+        };
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const token = localStorage.getItem('token');
+                let response = null;
+                if (editingPayment) {
+                    response = await API.put(`/tranche/${editingPayment.Num_Tran}`, formData, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success('Paiement mis à jour avec succès');
+                } else {
+                    response = await API.post('/tranche', formData, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    toast.success('Paiement enregistré avec succès');
+                }
+
+                // Update factures with the updated facture from response
+                if (response.data.facture) {
+                    setFactures(prevFactures => 
+                        prevFactures.map(facture => 
+                            facture.Num_Fact === response.data.facture.Num_Fact 
+                                ? response.data.facture 
+                                : facture
+                        )
+                    );
+                    console.log('Facture mise à jour tranche:', response.data.facture);
+                } else {
+                    console.error('Facture mise à jour non trouvée dans la réponse');
+                }
+
+                setShowPaymentModal(false);
+                fetchPayments();
+                resetForm();
+            } catch (error) {
+                console.error('Error saving payment:', error);
+                toast.error('Erreur lors de l\'enregistrement du paiement');
+            }
+        };
+
+        const handleEdit = (payment) => {
+            setEditingPayment(payment);
+            setFormData({
+                Date_Tran: payment.Date_Tran,
+                Heure_Tran: payment.Heure_Tran,
+                Montant_Tran: payment.Montant_Tran,
+                ModePaie_Tran: payment.ModePaie_Tran,
+                Num_Fact: payment.Num_Fact,
+                code_paiement: payment.code_paiement,
+                etat_paiement: payment.etat_paiement
             });
-            setShowPaymentModal(false);
-            toast.success('Paiement enregistré avec succès');
-        } catch (error) {
-            console.error('Error saving payment:', error);
-            toast.error('Erreur lors de l\'enregistrement du paiement');
-        }
+        };
+
+        const handleDelete = async (paymentId) => {
+            if (window.confirm('Êtes-vous sûr de vouloir supprimer ce paiement ?')) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await API.delete(`/tranche/${paymentId}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+
+                    // Update factures with the updated facture from response
+                    if (response.data.facture) {
+                        setFactures(prevFactures =>
+                            prevFactures.map(facture =>
+                                facture.Num_Fact === response.data.facture.Num_Fact
+                                   ? response.data.facture
+                                    : facture
+                            )
+                        );
+                    }
+                    toast.success('Paiement supprimé avec succès');
+                    fetchPayments();
+                } catch (error) {
+                    console.error('Error deleting payment:', error);
+                    toast.error('Erreur lors de la suppression du paiement');
+                }
+            }
+        };
+
+        const resetForm = () => {
+            setFormData({
+                Date_Tran: new Date().toISOString().split('T')[0],
+                Heure_Tran: new Date().toLocaleTimeString(),
+                Montant_Tran: selectedFacture?.Reste_A_Payer || 0,
+                ModePaie_Tran: '',
+                Num_Fact: selectedFacture?.Num_Fact || '',
+                code_paiement: `PAIE-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+                etat_paiement: false
+            });
+            setEditingPayment(null);
+        };
+
+        return (
+            showPaymentModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1001,
+                    overflow: 'auto'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        width: '800px',
+                        maxHeight: '90vh',
+                        overflow: 'auto'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2>{editingPayment ? 'Modifier Paiement' : 'Enregistrer un Paiement'}
+                             - {selectedFacture?.Type_Doc} N°{selectedFacture?.Num_Fact}
+                            </h2>
+                            <button onClick={() => {
+                                setShowPaymentModal(false);
+                                resetForm();
+                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>×</button>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '20px' }}>
+                            {/* Table moved to left side */}
+                            <div style={{ flex: 1 }}>
+                                <h3 style={{ marginBottom: '15px' }}>Paiements existants</h3>
+                                {loadingPayments ? (
+                                    <p>Chargement des paiements...</p>
+                                ) : Array.isArray(payments) && payments.length > 0 ? (
+                                    <div style={{ maxHeight: '400px', overflow: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                            <thead>
+                                                <tr style={{ backgroundColor: '#f2f2f2' }}>
+                                                    <th style={{ padding: '8px', border: '1px solid #ddd' }}>Date</th>
+                                                    <th style={{ padding: '8px', border: '1px solid #ddd' }}>Montant</th>
+                                                    <th style={{ padding: '8px', border: '1px solid #ddd', display: 'none' }}>Mode</th>
+                                                    <th style={{ padding: '8px', border: '1px solid #ddd' }}>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {payments.map(payment => (
+                                                    <tr key={payment.Num_Tran} style={{ borderBottom: '1px solid #ddd' }}>
+                                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                                                            {new Date(payment.Date_Tran).toLocaleDateString()}
+                                                        </td>
+                                                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{Number(payment.Montant_Tran).toLocaleString('fr-FR', {
+                                                            maximumFractionDigits: 0
+                                                        })}</td>
+                                                        <td style={{ padding: '8px', border: '1px solid #ddd', display: 'none' }}>{payment.ModePaie_Tran}</td>
+                                                        <td style={{ padding: '8px', border: '1px solid #ddd', display: 'flex', gap: '5px' }}>
+                                                            <button
+                                                                onClick={() => handleEdit(payment)}
+                                                                style={{
+                                                                    padding: '4px 8px',
+                                                                    backgroundColor: '#ffc107',
+                                                                    border: 'none',
+                                                                    borderRadius: '4px',
+                                                                    cursor: 'pointer',
+                                                                    title: 'Modifier la tranche de paiement'
+                                                                }}
+                                                            >
+                                                                <FaEdit />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(payment.Num_Tran)}
+                                                                style={{
+                                                                    padding: '4px 8px',
+                                                                    backgroundColor: '#dc3545',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '4px',
+                                                                    cursor: 'pointer',
+                                                                    title: 'Supprimer la tranche de paiement'
+                                                                }}
+                                                            >
+                                                                <FaTrash />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                <tr style={{ borderTop: '2px solid #333', fontWeight: 'bold' }}>
+                                                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>Total</td>
+                                                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                                                        {payments.reduce((sum, payment) => sum + Number(payment.Montant_Tran), 0).toLocaleString('fr-FR', {
+                                                            maximumFractionDigits: 0
+                                                        })}
+                                                    </td>
+                                                    <td style={{ padding: '8px', border: '1px solid #ddd', display: 'none' }}></td>
+                                                    <td style={{ padding: '8px', border: '1px solid #ddd' }}></td>
+                                                </tr>
+                                            </tbody>
+                                            
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p>Aucun paiement enregistré pour cette facture</p>
+                                )}
+                            </div>
+
+                            {/* Form moved to right side */}
+                            <div style={{ flex: 1 }}>
+                                <form onSubmit={handleSubmit}>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <strong>Date:</strong>
+                                        <input
+                                            type="date"
+                                            name="Date_Tran"
+                                            value={formData.Date_Tran}
+                                            onChange={handleChange}
+                                            style={{
+                                                width: '100%',
+                                                padding: '8px',
+                                                marginTop: '5px',
+                                                borderRadius: '4px',
+                                                border: '1px solid #ddd'
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <strong>Montant:</strong>
+                                        <input
+                                            type="number"
+                                            name="Montant_Tran"
+                                            value={formData.Montant_Tran || 0}
+                                            onChange={(e) => {
+                                              const value = parseFloat(e.target.value) || 0;
+                                              const maxAmount = selectedFacture?.Reste_A_Payer || 0;
+                                              if (value > maxAmount) {
+                                                e.target.value = maxAmount;
+                                              }
+                                              handleChange(e);
+                                            }}
+                                            style={{
+                                                width: '100%',
+                                                padding: '8px',
+                                                marginTop: '5px',
+                                                borderRadius: '4px',
+                                                border: '1px solid #ddd'
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <strong>Mode de Paiement:</strong>
+                                        <select
+                                            name="ModePaie_Tran"
+                                            value={formData.ModePaie_Tran}
+                                            onChange={handleChange}
+                                            style={{
+                                                width: '100%',
+                                                padding: '8px',
+                                                marginTop: '5px',
+                                                borderRadius: '4px',
+                                                border: '1px solid #ddd'
+                                            }}
+                                        >
+                                            <option value="Espèces">Espèces</option>
+                                            <option value="Chèque">Chèque</option>
+                                            <option value="Virement">Virement</option>
+                                            <option value="Mobile Money">Mobile Money</option>
+                                        </select>
+                                    </div>
+                                    <div style={{ marginBottom: '10px', display: 'none', }}>
+                                        <strong>Code Paiement:</strong>
+                                        <input
+                                            type="text"
+                                            name="code_paiement"
+                                            value={formData.code_paiement}
+                                            onChange={handleChange}
+                                            style={{
+                                                width: '100%',
+                                                padding: '8px',
+                                                marginTop: '5px',
+                                                borderRadius: '4px',
+                                                border: '1px solid #ddd'
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <input
+                                                type="checkbox"
+                                                name="etat_paiement"
+                                                checked={formData.etat_paiement}
+                                                onChange={handleChange}
+                                            />
+                                            <span>Paiement validé</span>
+                                        </label>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <button
+                                            type="submit"
+                                            style={{
+                                                backgroundColor: '#005B85',
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '8px 16px',
+                                                borderRadius: '4px',
+                                                cursor: 'pointer',
+                                                flex: 1
+                                            }}
+                                        >
+                                            {editingPayment ? 'Mettre à jour' : 'Enregistrer'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={resetForm}
+                                            style={{
+                                                backgroundColor: '#6c757d',
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '8px 16px',
+                                                borderRadius: '4px',
+                                                cursor: 'pointer',
+                                                flex: 1
+                                            }}
+                                        >
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        );
     };
 
-    return (
-        showPaymentModal && (
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1001
-            }}>
-                <div style={{
-                    backgroundColor: 'white',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    width: '400px'
-                }}>
-                    <h2 style={{ marginBottom: '20px' }}>Enregistrer un Paiement</h2>
-                    <form onSubmit={handleSubmit}>
-                        <div style={{ marginBottom: '10px' }}>
-                            <strong>Date:</strong>
-                            <input
-                                type="date"
-                                name="Date_Tran"
-                                value={formData.Date_Tran}
-                                onChange={handleChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginTop: '5px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ddd'
-                                }}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '10px' }}>
-                            <strong>Montant:</strong>
-                            <input
-                                type="number"
-                                name="Montant_Tran"
-                                value={formData.Montant_Tran}
-                                onChange={handleChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginTop: '5px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ddd'
-                                }}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '10px' }}>
-                            <strong>Mode de Paiement:</strong>
-                            <select
-                                name="ModePaie_Tran"
-                                value={formData.ModePaie_Tran}
-                                onChange={handleChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginTop: '5px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ddd'
-                                }}
-                            >
-                                <option value="">Sélectionner un mode</option>
-                                <option value="Espèces">Espèces</option>
-                                <option value="Chèque">Chèque</option>
-                                <option value="Virement">Virement</option>
-                                <option value="Mobile Money">Mobile Money</option>
-                            </select>
-                        </div>
-                        <div style={{ marginBottom: '10px' }}>
-                            <strong>Code Paiement:</strong>
-                            <input
-                                type="text"
-                                name="code_paiement"
-                                value={formData.code_paiement}
-                                onChange={handleChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginTop: '5px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ddd'
-                                }}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <input
-                                    type="checkbox"
-                                    name="etat_paiement"
-                                    checked={formData.etat_paiement}
-                                    onChange={handleChange}
-                                />
-                                <span>Paiement validé</span>
-                            </label>
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button
-                                type="submit"
-                                style={{
-                                    backgroundColor: '#005B85',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    flex: 1
-                                }}
-                            >
-                                Enregistrer
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowPaymentModal(false)}
-                                style={{
-                                    backgroundColor: '#6c757d',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    flex: 1
-                                }}
-                            >
-                                Annuler
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        )
-    );
-};
 
 
-    
 
 
 
@@ -1427,7 +1643,7 @@ const PaymentModal = () => {
                                                     {formatNumber(facture.Montant_Paye) || 0}
                                                 </td>
                                                 <td style={{ padding: '0.30rem', borderBottom: '1px solid #e5e7eb', textAlign: 'right' }}>
-                                                    {(facture.MTTC_Fact - (facture.Montant_Paye || 0)).toLocaleString()}
+                                                    {formatNumber(facture.Reste_A_Payer || 0)}
                                                 </td>
                                                 <td style={{ padding: '0.30rem', borderBottom: '1px solid #e5e7eb' }}>{facture.Type_Doc}</td>
                                                 <td style={{ padding: '0.30rem', borderBottom: '1px solid #e5e7eb', textAlign: 'right', backgroundColor: getTVAColor(facture) }}>
@@ -1495,7 +1711,7 @@ const PaymentModal = () => {
                                                     <button onClick={(e) => {
                                                         e.stopPropagation();
                                                         handlePayment(facture);
-                                                        }} 
+                                                    }}
                                                         className="btn btn-success btn-sm"
                                                         style={{
                                                             padding: '8px',
@@ -1506,7 +1722,7 @@ const PaymentModal = () => {
                                                         }}
                                                         title="Paiement">
 
-                                                        <FaMoneyBillAlt size={18}/>
+                                                        <FaMoneyBillAlt size={18} />
                                                     </button>
                                                     <button
                                                         onClick={(e) => {

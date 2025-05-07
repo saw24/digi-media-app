@@ -2,10 +2,11 @@
 const LigneFacture = require("../models/ligneFactureModel");*/
 
 const { Facture, LigneFacture, sequelize } = require("../models/associations");
+const FacturePaiement = require("../models/trancheModel");
+const { Op } = require("sequelize");
 //const moment = require('moment-timezone');
 
 
-const { Op } = require("sequelize");
 
 const factureController = {
     facture_get_liste: async (req, res) => {
@@ -217,6 +218,7 @@ const factureController = {
                     ...factureData,
                     Num_Fact: newNumFact,
                     Heure_Fact: heureFacturation,
+                    Reste_A_Payer: factureData.MTTC_Fact - factureData.Montant_Paye,
                 };
 
                 delete factureToCreate.id_facture;
@@ -278,6 +280,11 @@ const factureController = {
             const heure = req.body.Heure_Fact;
             const fullDateTime = `${dateFact} ${heure}:00`;
             factureData.Heure_Fact = fullDateTime;*/
+
+            // Convert string values to numbers and handle null/undefined values
+            const mttcFact = parseFloat(factureData.MTTC_Fact) || 0;
+            const montantPaye = parseFloat(factureData.Montant_Paye) || 0;
+            factureData.Reste_A_Payer = Number((mttcFact - montantPaye).toFixed(2));
 
             const result = await sequelize.transaction(async (t) => {
                 await Facture.update(factureData, {
@@ -367,6 +374,12 @@ const factureController = {
                 // First, delete all associated ligne factures
                 await LigneFacture.destroy({
                     where: { Num_fact: num_fact },
+                    transaction: t
+                });
+
+                //Add the facture paiement
+                await FacturePaiement.destroy({
+                    where: { Num_Fact: num_fact },
                     transaction: t
                 });
 

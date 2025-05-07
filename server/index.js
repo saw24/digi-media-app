@@ -8,6 +8,7 @@ const factureRoutes = require("./routes/factureRoutes");
 const clientRoutes = require('./routes/clientRoutes');
 const productRoutes = require('./routes/productRoutes');
 const domaineRoutes = require('./routes/domaineRoutes');
+const trancheRoutes = require('./routes/trancheRoutes');
 
 const app = express();
 
@@ -53,6 +54,9 @@ app.use("/api/produit", productRoutes);
 
 // ✅ Routes pour les domaines
 app.use('/api/domaine', domaineRoutes);
+
+// ✅ Routes pour les tranches
+app.use('/api/tranche', trancheRoutes);
 
 
 
